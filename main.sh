@@ -343,13 +343,13 @@ plany() {
     echo $passwd | sudo -S apt install winetricks -y
     echo $passwd | sudo -S wget http://10.10.80.86/share/PlanyVS.7z -P /opt/
     echo $passwd | sudo -S apt install ia32-libs -y
-    echo $passwd | sudo -S 7z x /opt/PlanyVS.7z -o/opt/
+    echo $passwd | sudo -S 7z x /opt/PlanyVS.7z -o /opt/
     echo $passwd | sudo -S rm /opt/PlanyVS.7z
     echo $passwd | sudo -S chmod -R 0777 /opt/PlanyVS
     echo $passwd | sudo -S chmod +x /opt/PlanyVS/plany.sh
     echo $passwd | sudo -S chmod 777 /opt/PlanyVS/plany.sh
     echo $passwd | sudo -S wget http://10.10.80.86/share/UpVO.desktop -P /etc/xdg/autostart/
-    echo $passwd | sudo -S wget http://10.10.80.86/share/UpVO.desktop -P /usr/share/applications/flydesktop/
+    echo $passwd | sudo -S wget http://10.10.80.86/share/UpVO-yrl.desktop -P /usr/share/applications/flydesktop/
     exit_code=$?
     # Проверка кода завершения и отображение соответствующего сообщения
         if [ $exit_code -eq 0 ]; then
