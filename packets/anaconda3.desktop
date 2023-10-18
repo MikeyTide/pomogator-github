@@ -1,0 +1,11 @@
+[Desktop Entry]
+Name=Anaconda 3
+Name[ru]=Anaconda 3
+Type=Application
+NoDisplay=false
+Exec=anaconda-navigator
+Icon=/usr/share/pixmaps/anaconda3.png
+Hidden=false
+Terminal=false
+StartupNotify=false
+Categories=Development
