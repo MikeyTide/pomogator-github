@@ -1,7 +1,7 @@
 #!/bin/bash
 #---------------init menu event for item_menu_information_author="Связь с автором и пожелания" menu-------------------------------
 mail_author(){
-    $(zenity --info --text="Для связи с автором приложения напишите на почту gabidullina.a@sseu.ru.\nВ теме письма укажите ПОМОГАТОР СГЭУ.\nХорошего настроения и продуктивной работы!" --height=150 --width=300)
+    $(zenity --info --text="Для связи с автором приложения напишите на почту gabidullina.a@sseu.ru.\nВ теме письма укажите ПОМОГАТОР.\nХорошего настроения и продуктивной работы!" --height=150 --width=300)
 }
 
 declare -A event_menu

@@ -1,12 +1,12 @@
 #!/bin/bash
 #---------------init core config-------------------------------------
+url=license.sseu.ru
 path=/opt/helper
 source $path/version.sh
 exit_app="Выход"
 exit_menu="Назад"
 selected_item_menu=""
-app_info="Программа помощник: Помогатор СГЭУ\nВерсия: "$version_now"\nРазработчик: Габидуллин А.\nВкладки установка удаление программ могут быть использованны только под локальным или доменным администратором\n © 2023"
-news="В новой версии "$version_now" добавлены: Групповые политики, Finereader, Учебные планы,\n КонсультантПлюс,\n Касперский,\n Криптопро,\n Скрабус,\n КонтурТолк,\n ПДФ-редактор,\n Арт-редактор. \n По запросу студентов и преподавателей добавлены:\n 1.Xampp-аналог OpenServer, \n2. UnityHub,\n 3. Anaconda,\n4.Mysql Workbench"
+app_info="Программа помощник: Помогатор\nВерсия: "$version_now"\nРазработчик: Габидуллин А.\nВкладки установка удаление программ могут быть использованны только под локальным или доменным администратором\n © 2023"
 crypto="Для работы с сайтами использующими ЭЦП для подтверждения входа необходимо устанвить яндекс браузер!" 
 papki="1.Необходимо перезайти в сессию.\n2. Перезагрузить ПК.\n3. Зайти в учетную запись имяпользователя@sseu.ru и пароль от windows прошлый ( если пароль устарел сменить его на новый)"
 #---------------init items_main_menu-------------------------------
@@ -46,6 +46,9 @@ source $path/item_menu_information_fonts.sh
 
 #---------------init for item_menu_information_author="Связь с автором и пожелания" menu-------------------------------
 source $path/item_menu_information_author.sh
+
+#---------------init for item_menu_information_pomogator="Обновление и нововведения" menu-------------------------------
+source $path/item_menu_information_pomogator.sh
 
 #-------------init menu event-----------------------
 declare -A event_menu
@@ -90,8 +93,11 @@ source $path/event_item_menu_information_freeipa.sh
 #---------------init event for item_menu_information_fonts = шрифты menu-------------------------------
 source $path/event_item_menu_information_fonts.sh
 
-#---------------init event for item_menu_information_update = шрифты menu-------------------------------
+#---------------init event for item_menu_information_update Обновление системы-------------------------------
 event_menu["$item_menu_information_update"]="system_update"
+
+#---------------init event for item_menu_information_pomogator обновление помогатора-------------------------------
+source $path/event_item_menu_information_pomogator.sh
 
 #---------------init menu event for item_menu_information_author="Связь с автором и пожелания" menu------------------
 source $path/event_item_menu_information_author.sh
@@ -669,6 +675,28 @@ consultant(){
     ) | zenity --progress --pulsate
 }
 
+install_virtualbox(){
+    passwd=$(zenity --password)
+    (
+    echo $passwd | sudo -S wget http://10.10.80.86/share/debian.deb -P /home/$USER/Desktop/
+    echo $passwd | sudo -S dpkg -i /home/$USER/Desktop/debian.deb
+    echo $passwd | sudo -S wget http://10.10.80.86/share/debian.list -P /etc/apt/sources.list.d/debian.list
+    echo $passwd | sudo -S wget http://10.10.80.86/share/virtualbox.deb -P /home/$USER/Desktop/
+    echo $passwd | sudo -S dpkg -i /home/$USER/Desktop/virtualbox.deb
+    echo $passwd | sudo -S rm /etc/apt/sources.list.d/debian.list
+    echo $passwd | sudo -S rm /home/$USER/Desktop/debian.deb
+    echo $passwd | sudo -S rm /home/$USER/Desktop/virtualbox.deb
+    # Получение кода завершения установки
+    exit_code=$?
+    # Проверка кода завершения и отображение соответствующего сообщения
+        if [ $exit_code -eq 0 ]; then
+            zenity --info --title="Успех" --text="Пакет успешно установлен!"
+        else
+            zenity --error --title="Ошибка" --text="Ошибка при установке пакета."
+        fi
+    ) | zenity --progress --pulsate  
+}
+
 system_update(){
     passwd=$(zenity --password)
     zenity --progress --pulsate --title="Установка пакета" --text="Подождите, идет установка..." --auto-close &
@@ -684,8 +712,6 @@ system_update(){
     echo $passwd | sudo -S sh -c 'echo "server = puppet.astra.domain" >> /etc/puppetlabs/puppet/puppet.conf'
     echo $passwd | sudo -S sh -c 'echo "show_diff = true" >> /etc/puppetlabs/puppet/puppet.conf'
     echo $passwd | sudo -S sh -c 'echo "runinterval = 1m" >> /etc/puppetlabs/puppet/puppet.conf'
-    echo $passwd | sudo -S sh -c 'echo "10.10.80.77     buhsrv2" >> /etc/hosts'
-    echo $passwd | sudo -S sh -c 'echo "10.10.80.77     buhsrv2.sseu.ru" >> /etc/hosts'
     echo $passwd | sudo -S sh -c 'echo "10.10.80.88     puppet.astra.domain" >> /etc/hosts'
     echo $passwd | sudo -S ufw allow 8140
     echo $passwd | sudo -S systemctl enable puppet
@@ -701,16 +727,51 @@ system_update(){
         fi
     ) | zenity --progress --pulsate
 }
+
+pomogator_update(){
+    zenity --progress --pulsate --title="Обновление программы" --text="Подождите, идет установка..." --auto-close &
+    (
+    passwd=$(zenity --password)
+    tmp_folder=$(mktemp -d)
+    echo $passwd | sudo -S git clone "https://gitflic.ru/project/gabidullin-aleks/pomogator.git" "$tmp_folder"
+    FOLDER_PATH=/opt/helper/
+    # Замените файлы в целевой папке
+    echo $passwd | sudo -S cp -R "$tmp_folder"/* "$FOLDER_PATH"
+
+    # Удалите временную папку с репозиторием
+    echo $passwd | sudo -S rm -rf "$tmp_folder"
+    exit_code=$?
+    # Проверка кода завершения и отображение соответствующего сообщения
+    if [ $exit_code -eq 0 ]; then
+        zenity --info --title="Успех" --text="Пакет успешно установлен!"
+    else
+        zenity --error --title="Ошибка" --text="Ошибка при установке пакета."
+    fi
+    ) | zenity --progress --pulsate
+
+}
+pomogator_news(){
+    news=$(curl "https://gitflic.ru/project/gabidullin-aleks/pomogator/blob/raw?file=news&inline=false")
+    $(zenity --info --text="Вышло обновление приложения $news " --height=150 --width=300)
+
+}
+
+pomogator_version(){
+    version=$(curl "https://gitflic.ru/project/gabidullin-aleks/pomogator/blob/raw?file=version.sh&inline=false")
+    trimmed_version=$(echo "$version" | grep -o '[0-9]\+\.[0-9]\+\.[0-9]\+')
+    if [[ "$trimmed_version" != "$version_now" ]]; then
+        $(zenity --info --text="Вышло обновление "$trimmed_version".\nСпасибо что используете наши технологии" --height=150 --width=300)
+    else
+        $(zenity --info --text="У вас установленно актуальное обновление "$version_now".\nСпасибо что используете наши технологии" --height=150 --width=300)
+    fi
+}
 #-------------------------------------main function------------------------------------#
-check_update() {
-    version=$(curl http://10.10.80.86/version)
-        if [[ "$version" != "$version_now" ]]; then
-            wget http://10.10.80.86/share/helper/helper.tar.gz -P /opt/helper/
-            tar -xvf /opt/helper/helper.tar.gz -C /opt/helper/ --overwrite
-            rm /opt/helper/helper.tar.gz
-            $(zenity --info --text="Приложение было обновлено с "$version_now" до "$version". Приложение автоматически закроется после того как вы нажмете ОК.\nСпасибо что используете наши технологии " --height=150 --width=300)
-            exit 0 
-        fi
+check_update(){
+    version=$(curl "https://gitflic.ru/project/gabidullin-aleks/pomogator/blob/raw?file=version.sh&inline=false")
+    trimmed_version=$(echo "$version" | grep -o '[0-9]\+\.[0-9]\+\.[0-9]\+')
+    if [[ "$trimmed_version" != "$version_now" ]]; then
+        $(zenity --info --text="Вышло обновление приложения "$trimmed_version".\nСпасибо что используете наши технологии" --height=150 --width=300)
+    fi
 }
 
 run_event() {    
@@ -743,7 +804,6 @@ run_menu(){
 
 run_app() {
     $(zenity --info --text="$app_info" --height=300 --width=400)
-    $(zenity --info --text="$news" --height=300 --width=400)
     check_update
     run_menu "${items_main_menu[@]}"
 }
