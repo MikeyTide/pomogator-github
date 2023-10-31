@@ -7,10 +7,20 @@ if dpkg -s git  &>/dev/null; then
             --add-password="Пароль")
     echo "$passwd" | sudo -Sv >/dev/null 2>&1
         if [ $? -eq 0 ]; then
-        echo $passwd | sudo -S git clone https://gitflic.ru/project/gabidullin-aleks/pomogator.git /opt/helper
+        zenity --progress --pulsate --title="Установка пакета" --text="Подождите, идет установка..." --auto-close &
+        (
+        echo $passwd | sudo -S git clone --depth=1 https://gitflic.ru/project/gabidullin-aleks/pomogator.git /opt/helper
         echo $passwd | sudo -S chmod +x -R /opt/helper
         echo $passwd | sudo -S cp /opt/helper/pomogator.desktop -P /usr/share/applications/flydesktop/
         echo $passwd | sudo -S cp /opt/helper/pomogator_icon.png -P /usr/share/pixmaps/
+        exit_code=$?
+            # Проверка кода завершения и отображение соответствующего сообщения
+            if [ $exit_code -eq 0 ]; then
+                $(zenity --info --title="Успех" --text="Приложение Помогатор Astra Linux успешно установлено!" --height=150 --width=300)
+            else
+                zenity --error --title="Ошибка" --text="Ошибка при установке пакета."
+            fi
+            ) | zenity --progress --pulsate --auto-close
         else
         $(zenity --info --text "Неверный пароль администратора! Или у вас не хватает прав!" --height=150 --width=300)
         exit 0
@@ -24,7 +34,17 @@ if dpkg -s git  &>/dev/null; then
             --add-password="Пароль")
         echo "$passwd" | sudo -Sv >/dev/null 2>&1
             if [ $? -eq 0 ]; then
+            zenity --progress --pulsate --title="Установка пакета" --text="Подождите, идет установка..." --auto-close &
+            (
             echo $passwd | sudo -S apt install curl -y
+            exit_code=$?
+            # Проверка кода завершения и отображение соответствующего сообщения
+            if [ $exit_code -eq 0 ]; then
+                $(zenity --info --title="Успех" --text="Пакет успешно установлен! Запустите установщик повторно для проверки зависимостей!" --height=150 --width=300)
+            else
+                zenity --error --title="Ошибка" --text="Ошибка при установке пакета."
+            fi
+            ) | zenity --progress --pulsate --auto-close
             else
             $(zenity --info --text "Неверный пароль администратора! Или у вас не хватает прав!" --height=150 --width=300)
             fi
@@ -41,7 +61,17 @@ else
             --add-password="Пароль")
         echo "$passwd" | sudo -Sv >/dev/null 2>&1
             if [ $? -eq 0 ]; then
+            zenity --progress --pulsate --title="Установка пакета" --text="Подождите, идет установка..." --auto-close &
+            (
             echo $passwd | sudo -S apt install git -y
+            exit_code=$?
+            # Проверка кода завершения и отображение соответствующего сообщения            
+            if [ $exit_code -eq 0 ]; then
+                $(zenity --info --title="Успех" --text="Пакет успешно установлен! Запустите установщик повторно для проверки зависимостей!" --height=150 --width=300)
+            else
+                zenity --error --title="Ошибка" --text="Ошибка при установке пакета."
+            fi
+            ) | zenity --progress --pulsate --auto-close
             else
             $(zenity --info --text "Неверный пароль администратора! Или у вас не хватает прав!" --height=150 --width=300)
             fi
@@ -49,10 +79,3 @@ else
             exit 0
         fi
 fi
-
-
-
-
-
-
-

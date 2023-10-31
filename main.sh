@@ -30,6 +30,9 @@ source $path/item_menu_information_install.sh
 #---------------init for item_menu_information_remove="Удаление программ" menu-------------------------------
 source $path/item_menu_remove_apps.sh
 
+#---------------init for item_menu_information_repo="Добавить сетевые репозитории" menu-------------------------------
+source $path/item_menu_information_repo.sh
+
 #---------------init for item_menu_information_printers="Драйвера для принтеров" menu-------------------------------
 source $path/item_menu_information_printers.sh
 
@@ -74,6 +77,9 @@ source $path/event_item_menu_information_install.sh
 #---------------init event for item_menu_information_remove="Удаление программ" menu-------------------------------
 source $path/event_item_menu_information_remove.sh
 
+#---------------init event for item_menu_information_repo="Добавить сетевые репозитории" menu-------------------------------
+source $path/event_item_menu_information_repo.sh
+
 #---------------init for item_menu_information_printers="Драйвера для принтеров" menu-------------------------------
 event_menu["$item_menu_information_printers"]="run_menu ${item_menu_firmi_printers[@]}"
 
@@ -112,6 +118,8 @@ info_shared_papki() {
     $(zenity --info --text="$papki" --height=200 --width=300)
 }
 
+#-------------------------------------check function------------------------------------#
+
 check_head_shared(){
     check_head=$(grep "Archives" "/home/$USER/.config/rusbitech/fly-fm-vfs.conf")
         if [[ "$check_head" == "" ]]; then
@@ -121,6 +129,14 @@ check_head_shared(){
             AutoDetectBadPaths=true" > /home/$USER/.config/rusbitech/fly-fm-vfs.conf
         fi
 }
+
+check_cancel(){
+        if [[ $? -eq 1 ]]; then
+        run_menu "${items_main_menu[@]}"
+        fi
+}
+
+#-------------------------------------all function------------------------------------#
 
 filecore(){
     #для того чтобы добавить заранее готовые пути до сетевых папок чтобы добавлять их по нажатию 1 кнопки необходимо:
@@ -153,7 +169,9 @@ filecore(){
 share_folder(){
     check_head_shared
     name_folder=$(zenity zenity --entry --text "Введите имя для сетевой папки на английском языке" --height=150 --width=300)
+    check_cancel
     folder=$(zenity zenity --entry --text "Введите полный путь до сетевой папки. smb://server/share/folder" --height=250 --width=400)
+    check_cancel
     local n=1
     while true; do
         number=$(grep "$n" "/home/$USER/.config/rusbitech/fly-fm-vfs.conf")
@@ -175,6 +193,7 @@ share_folder(){
 
 remove_share_folder(){
     remove_name_folder=$(zenity zenity --entry --text "Введите имя для сетевой папки, которую хотите удалить. Имя указано в пункте 'Добавить сетевую папку' " --height=150 --width=300)
+    check_cancel
     sed "/$remove_name_folder/d" /home/$USER/.config/rusbitech/fly-fm-vfs.conf > /home/$USER/.config/test
     mv /home/$USER/.config/test /home/$USER/.config/rusbitech/fly-fm-vfs.conf
     killall fly-vfs-service fly-fops-service fly-open-service fly-fm-service      
@@ -187,8 +206,9 @@ get_drivers() {
 }
 
 install_apps() {
-    wget https://easyastra.ru/TEST/store/"$selected_item_menu".deb -P /home/$USER/Desktop/
     passwd=$(zenity --password)
+    check_cancel
+    wget https://easyastra.ru/TEST/store/"$selected_item_menu".deb -P /home/$USER/Desktop/
     file="/home/$USER/Desktop/"$selected_item_menu".deb"
     # Установка пакета с указанием прогресса
     zenity --progress --pulsate --title="Установка пакета" --text="Подождите, идет установка..." --auto-close &
@@ -203,12 +223,13 @@ install_apps() {
         else
             zenity --error --title="Ошибка" --text="Ошибка при установке пакета."
         fi
-    ) | zenity --progress --pulsate
+    ) | zenity --progress --pulsate --auto-close
     rm /home/$USER/Desktop/"$selected_item_menu".deb
 }
 
 install_app_repo() {
     passwd=$(zenity --password)
+    check_cancel
     # Установка пакета с указанием прогресса
     zenity --progress --pulsate --title="Установка пакета" --text="Подождите, идет установка..." --auto-close &
     (
@@ -222,16 +243,19 @@ install_app_repo() {
         else
             zenity --error --title="Ошибка" --text="Ошибка при установке пакета."
         fi
-    ) | zenity --progress --pulsate
+    ) | zenity --progress --pulsate --auto-close
 }
 
 remove_app(){
     local passwd=$(zenity --password)
+    check_cancel
     echo $passwd | sudo -S apt remove "$1" -y
 }
 
+#-------------------------------------soft function------------------------------------#
 anaconda(){
     passwd=$(zenity --password)
+    check_cancel
     # Установка пакета с указанием прогресса
     zenity --progress --pulsate --title="Установка пакета" --text="Подождите, идет установка..." --auto-close &
     (
@@ -256,13 +280,14 @@ anaconda(){
         else
             zenity --error --title="Ошибка" --text="Ошибка при установке пакета."
         fi
-    ) | zenity --progress --pulsate
+    ) | zenity --progress --pulsate --auto-close
     rm /home/$USER/Desktop/"$selected_item_menu".deb
 }
 
 xampp(){
     $(zenity --info --text="ПОСЛЕ УСТАНОВКИ НЕОБХОДИМО ПЕРЕЗАГРУЗИТЬ ПК"  --height=300 --width=400)
     passwd=$(zenity --password)
+    check_cancel
     zenity --progress --pulsate --title="Установка пакета" --text="Подождите, идет установка..." --auto-close &
     (
     echo $passwd | sudo -S wget https://deac-fra.dl.sourceforge.net/project/xampp/XAMPP%20Linux/8.2.4/xampp-linux-x64-8.2.4-0-installer.run -P /opt/
@@ -279,12 +304,13 @@ xampp(){
         else
             zenity --error --title="Ошибка" --text="Ошибка при установке пакета."
         fi
-    ) | zenity --progress --pulsate
+    ) | zenity --progress --pulsate --auto-close
 }
 
 workbench(){
     $(zenity --info --text="ПОСЛЕ УСТАНОВКИ НЕОБХОДИМО ПЕРЕЗАГРУЗИТЬ ПК"  --height=300 --width=400)
     passwd=$(zenity --password)
+    check_cancel
     zenity --progress --pulsate --title="Установка пакета" --text="Подождите, идет установка..." --auto-close &
     (
     echo $passwd | sudo -S wget -O /home/$USER/Desktop/debian.deb https://gitflic.ru/project/gabidullin-aleks/packets_for_pomogator/blob/raw?file=repo%2Fdebian.deb
@@ -303,13 +329,14 @@ workbench(){
         else
             zenity --error --title="Ошибка" --text="Ошибка при установке пакета."
         fi
-    ) | zenity --progress --pulsate
+    ) | zenity --progress --pulsate --auto-close
 }
 
 freeipa(){
-    $(zenity --info --text="Перед продолжением необходимо в dns указать первым, dns адрес вашего контроллера домена")
+    $(zenity --info --text="Перед продолжением необходимо в dns указать первым, dns адрес вашего контроллера домена" --height=300 --width=400)
     passwd=$(zenity --password)
-    zenity --progress --pulsate --title="Установка пакета" --text="Подождите, идет установка..." --auto-close &
+    check_cancel
+    zenity --progress --pulsate --title="Установка пакета astra-freeipa-client" --text="Подождите, идет установка..." --height=300 --width=400 --auto-close &
     (
     # Установка пакета с использованием sudo и передачей пароля через stdin
     echo $passwd | sudo -S apt install astra-freeipa-client -y
@@ -321,12 +348,15 @@ freeipa(){
         else
             zenity --error --title="Ошибка" --text="Ошибка при установке пакета."
         fi
-    ) | zenity --progress --pulsate
+    ) | zenity --progress --pulsate --auto-close
     domain_freeipa=$(zenity --entry --text="Введите ваш домен FreeIpa типа: astra.domain")
+    check_cancel
     user_freeipa=$(zenity --entry --text="Введите логин администратора домена astra.domain")
+    check_cancel
     pass_freeipa=$(zenity --forms --title="Пароль для админа домена" \
     --text="Введите пароль админа домена" \
     --add-password="Пароль")
+    check_cancel
     echo $passwd | sudo -S astra-freeipa-client -d "$domain_freeipa" -u "$user_freeipa" -p "$pass_freeipa" -y --par "--force --enable-dns-updates"
     echo $passwd | sudo -S sed -i 's/dns_lookup_realm = false/dns_lookup_realm = true/g'  /etc/krb5.conf
     echo $passwd | sudo -S sed -i 's/dns_lookup_kdc = false/dns_lookup_kdc = true/g'  /etc/krb5.conf
@@ -345,6 +375,9 @@ crypto1145(){
     $(zenity --info --text="$crypto" --height=300 --width=400)
     else
     passwd=$(zenity --password)
+    check_cancel
+    zenity --progress --pulsate --title="Установка пакета astra-freeipa-client" --text="Подождите, идет установка..." --height=300 --width=400 --auto-close &
+    (
     wget -O /home/$USER/Desktop/crypto1145.tgz https://gitflic.ru/project/gabidullin-aleks/packets_for_pomogator/blob/raw?file=crypto%2Fcrypto1145.tgz
     tar -zxf /home/$USER/Desktop/crypto1145.tgz -C /home/$USER/Desktop/
     # Установка пакета с использованием sudo и передачей пароля через stdin
@@ -367,6 +400,14 @@ crypto1145(){
     echo $passwd | sudo -S rm /home/$USER/Загрузки/cades-linux-amd64.tar.gz
     echo $passwd | sudo -S dpkg -i /home/$USER/Загрузки/cades-linux-amd64/*.deb
     echo $passwd | sudo -S rm -r /home/$USER/Загрузки/cades-linux-amd64
+    exit_code=$?
+    # Проверка кода завершения и отображение соответствующего сообщения
+        if [ $exit_code -eq 0 ]; then
+            zenity --info --title="Успех" --text="Пакет успешно установлен!"
+        else
+            zenity --error --title="Ошибка" --text="Ошибка при установке пакета."
+        fi
+    ) | zenity --progress --pulsate --auto-close
     yandex-browser --new-window https://addons.opera.com/ru/extensions/details/cryptopro-extension-for-cades-browser-plug-in/ https://chrome.google.com/webstore/detail/расширение-для-плагина-го/pbefkdcndngodfeigfdgiodgnmbgcfha &
  fi
 }
@@ -376,6 +417,9 @@ crypto1290(){
     $(zenity --info --text="$crypto" --height=300 --width=400)
     else
     passwd=$(zenity --password)
+    check_cancel
+    zenity --progress --pulsate --title="Установка пакета astra-freeipa-client" --text="Подождите, идет установка..." --height=300 --width=400 --auto-close &
+    (
     echo $passwd | sudo -S apt install yandex-browser-stable -y
     wget -O /home/$USER/Desktop/crypto1290.tgz https://gitflic.ru/project/gabidullin-aleks/packets_for_pomogator/blob/raw?file=crypto%2Fcrypto1290.tgz
     tar -zxf /home/$USER/Desktop/crypto1290.tgz -C /home/$USER/Desktop/
@@ -399,6 +443,14 @@ crypto1290(){
     echo $passwd | sudo -S rm /home/$USER/Загрузки/cades-linux-amd64.tar.gz
     echo $passwd | sudo -S dpkg -i /home/$USER/Загрузки/cades-linux-amd64/*.deb
     echo $passwd | sudo -S rm -r /home/$USER/Загрузки/cades-linux-amd64
+    exit_code=$?
+    # Проверка кода завершения и отображение соответствующего сообщения
+        if [ $exit_code -eq 0 ]; then
+            zenity --info --title="Успех" --text="Пакет успешно установлен!"
+        else
+            zenity --error --title="Ошибка" --text="Ошибка при установке пакета."
+        fi
+    ) | zenity --progress --pulsate --auto-close
     yandex-browser --new-window https://addons.opera.com/ru/extensions/details/cryptopro-extension-for-cades-browser-plug-in/ https://chrome.google.com/we$
     fi
 }
@@ -408,6 +460,7 @@ kaspersky(){
     $(zenity --info --text="Касперский уже установлен!" --height=300 --width=400)
     else
     passwd=$(zenity --password)
+    check_cancel
     zenity --progress --pulsate --title="Установка пакета" --text="Подождите, идет установка..." --auto-close &
     (
     echo $passwd | sudo -S wget -O /home/$USER/Desktop/kesl-astra_11.1.0-3013_amd64.deb https://gitflic.ru/project/gabidullin-aleks/packets_for_pomogator/blob/raw?file=kaspersky%2Fkesl-astra_11.1.0-3013_amd64.deb
@@ -426,12 +479,13 @@ kaspersky(){
         else
             zenity --error --title="Ошибка" --text="Ошибка при установке пакета."
         fi
-    ) | zenity --progress --pulsate    
+    ) | zenity --progress --pulsate --auto-close
    fi
 }
 
 fonts(){
     passwd=$(zenity --password)
+    check_cancel
     echo $passwd | sudo -S wget -O /home/$USER/Desktop/debian.deb https://gitflic.ru/project/gabidullin-aleks/packets_for_pomogator/blob/raw?file=repo%2Fdebian.deb
     echo $passwd | sudo -S dpkg -i /home/$USER/Desktop/debian.deb
     echo $passwd | sudo -S wget -O /etc/apt/sources.list.d/debian.list https://gitflic.ru/project/gabidullin-aleks/packets_for_pomogator/blob/raw?file=repo%2Fdebian.list
@@ -449,13 +503,14 @@ fonts(){
         else
             zenity --error --title="Ошибка" --text="Ошибка при установке пакета."
         fi
-    ) | zenity --progress --pulsate
+    ) | zenity --progress --pulsate --auto-close
     echo $passwd | sudo -S rm /etc/apt/sources.list.d/debian.list
     echo $passwd | sudo -S apt update -y 
 }
 
 finereader(){
     passwd=$(zenity --password)
+    check_cancel
     zenity --progress --pulsate --title="Установка пакета" --text="Подождите, идет установка..." --auto-close &
     (
     echo $passwd | sudo -S mkdir /opt/finereader/
@@ -471,33 +526,33 @@ finereader(){
         else
             zenity --error --title="Ошибка" --text="Ошибка при установке пакета."
         fi
-    ) | zenity --progress --pulsate
-
-    
+    ) | zenity --progress --pulsate --auto-close
+   
 }
 
 1c_install(){
     passwd=$(zenity --password)
-    $(zenity --info --text="Выберите архив с серверной частью Предприятия 1с (примерное имя deb64_8_3_18_1959.tar.gz) " --height=150 --width=300)
-    selected_file=$(zenity --file-selection)
-    zenity --progress --pulsate --title="Установка пакета" --text="Подождите, идет установка..." --auto-close &
-    (
+    check_cancel
+    # $(zenity --info --text="Выберите архив с серверной частью Предприятия 1с (примерное имя deb64_8_3_18_1959.tar.gz) " --height=150 --width=300)
+    # selected_file=$(zenity --file-selection)
     mkdir /home/$USER/Desktop/1c
-    echo $passwd | sudo -S tar -xzf $selected_file -C /home/$USER/Desktop/1c
-    # Установка пакета с использованием sudo и передачей пароля через stdin
-    echo $passwd | sudo -S dpkg -i /home/$USER/Desktop/1c/1c-enterprise-*-common*_amd64.deb
-    echo $passwd | sudo -S dpkg -i /home/$USER/Desktop/1c/1c-enterprise-*-server*_amd64.deb    
-    echo $passwd | sudo -S dpkg -i /home/$USER/Desktop/1c/1c-enterprise-*-ws*_amd64.deb  
-    echo $passwd | sudo -S dpkg -i /home/$USER/Desktop/1c/1c-enterprise-*-crs_*_amd64.deb
-    exit_code=$?
-    # Проверка кода завершения и отображение соответствующего сообщения
-        if [ $exit_code -eq 0 ]; then
-            zenity --info --title="Успех" --text="Серверная составляющая установлена!"
-        else
-            zenity --error --title="Ошибка" --text="Ошибка при установке серверной части."
-        fi
-    ) | zenity --progress --pulsate
-    # Получение кода завершения установки
+    # zenity --progress --pulsate --title="Установка пакета" --text="Подождите, идет установка..." --auto-close &
+    # (
+    # echo $passwd | sudo -S tar -xzf $selected_file -C /home/$USER/Desktop/1c
+    # # Установка пакета с использованием sudo и передачей пароля через stdin
+    # echo $passwd | sudo -S dpkg -i /home/$USER/Desktop/1c/1c-enterprise-*-common*_amd64.deb
+    # echo $passwd | sudo -S dpkg -i /home/$USER/Desktop/1c/1c-enterprise-*-server*_amd64.deb    
+    # echo $passwd | sudo -S dpkg -i /home/$USER/Desktop/1c/1c-enterprise-*-ws*_amd64.deb  
+    # echo $passwd | sudo -S dpkg -i /home/$USER/Desktop/1c/1c-enterprise-*-crs_*_amd64.deb
+    # exit_code=$?
+    # # Проверка кода завершения и отображение соответствующего сообщения
+    #     if [ $exit_code -eq 0 ]; then
+    #         zenity --info --title="Успех" --text="Серверная составляющая установлена!"
+    #     else
+    #         zenity --error --title="Ошибка" --text="Ошибка при установке серверной части."
+    #     fi
+    # ) | zenity --progress --pulsate --auto-close
+    # # Получение кода завершения установки
     $(zenity --info --text="Выберите архив с клиентской частью Предприятия 1с (примерное имя client_8_3_18_1959.deb64.tar.gz) " --height=150 --width=300)
     selected_file_client=$(zenity --file-selection)
     zenity --progress --pulsate --title="Установка пакета" --text="Подождите, идет установка..." --auto-close &
@@ -506,6 +561,10 @@ finereader(){
     echo $passwd | sudo -S apt install libfreetype6 libgsf-1-common unixodbc glib2.0 -y 
     echo $passwd | sudo -S apt install libwebkitgtk-3.0-0
     echo $passwd | sudo -S apt --fix-broken install -y
+    echo $passwd | sudo -S dpkg -i /home/$USER/Desktop/1c/1c-enterprise-*-common*_amd64.deb
+    echo $passwd | sudo -S dpkg -i /home/$USER/Desktop/1c/1c-enterprise-*-server*_amd64.deb    
+    echo $passwd | sudo -S dpkg -i /home/$USER/Desktop/1c/1c-enterprise-*-ws*_amd64.deb  
+    echo $passwd | sudo -S dpkg -i /home/$USER/Desktop/1c/1c-enterprise-*-crs_*_amd64.deb
     echo $passwd | sudo -S dpkg -i /home/$USER/Desktop/1c/1c-enterprise-*-client_*_amd64.deb   
     echo $passwd | sudo -S rm -r /home/$USER/Desktop/1c
     # тут мы может указать путь откуда будут скачиваться заранее созданый файл с базами 1с ( он есть в репозитори как пример)
@@ -516,15 +575,16 @@ finereader(){
     exit_code=$?
     # Проверка кода завершения и отображение соответствующего сообщения
         if [ $exit_code -eq 0 ]; then
-            zenity --info --title="Успех" --text="Серверная составляющая установлена!"
+            zenity --info --title="Успех" --text="Клиентская составляющая установлена!"
         else
             zenity --error --title="Ошибка" --text="Ошибка при установке серверной части."
         fi
-    ) | zenity --progress --pulsate
+    ) | zenity --progress --pulsate --auto-close
 }
 
 dinfo_19(){
     passwd=$(zenity --password)
+    check_cancel
     (
     echo $passwd | sudo -S mkdir /home/$USER/Desktop/info
     echo $passwd | sudo -S wget -O /home/$USER/Desktop/info/simpledinfo_0-0.5_astra17.deb https://gitflic.ru/project/gabidullin-aleks/packets_for_pomogator/blob/raw?file=simpledinfo%2Fsimpledinfo_0-0.5_astra17.deb
@@ -543,12 +603,13 @@ dinfo_19(){
         else
             zenity --error --title="Ошибка" --text="Ошибка при установке пакета."
         fi
-    ) | zenity --progress --pulsate
+    ) | zenity --progress --pulsate --auto-close
        
 }
 
 dinfo_22(){
     passwd=$(zenity --password)
+    check_cancel
     (
     echo $passwd | sudo -S mkdir /home/$USER/Desktop/info
     echo $passwd | sudo -S wget -O /home/$USER/Desktop/info/simpledinfo_0-0.5_astra17.deb https://gitflic.ru/project/gabidullin-aleks/packets_for_pomogator/blob/raw?file=simpledinfo%2Fsimpledinfo_0-0.5_astra17.deb
@@ -567,12 +628,13 @@ dinfo_22(){
         else
             zenity --error --title="Ошибка" --text="Ошибка при установке пакета."
         fi
-    ) | zenity --progress --pulsate
+    ) | zenity --progress --pulsate --auto-close
        
 }
 
 consultant(){
-      passwd=$(zenity --password)
+    passwd=$(zenity --password)
+    check_cancel
     (
     echo $passwd | sudo -S apt install wine -y
     echo $passwd | sudo -S mkdir /mnt/cons
@@ -596,11 +658,12 @@ consultant(){
         else
             zenity --error --title="Ошибка" --text="Ошибка при установке пакета."
         fi
-    ) | zenity --progress --pulsate
+    ) | zenity --progress --pulsate --auto-close
 }
 
 install_virtualbox(){
     passwd=$(zenity --password)
+    check_cancel
     (
     echo $passwd | sudo -S wget -O /home/$USER/Desktop/debian.deb https://gitflic.ru/project/gabidullin-aleks/packets_for_pomogator/blob/raw?file=repo%2Fdebian.deb
     echo $passwd | sudo -S dpkg -i /home/$USER/Desktop/debian.deb
@@ -619,11 +682,12 @@ install_virtualbox(){
         else
             zenity --error --title="Ошибка" --text="Ошибка при установке пакета."
         fi
-    ) | zenity --progress --pulsate  
+    ) | zenity --progress --pulsate --auto-close
 }
 
 system_update(){
     passwd=$(zenity --password)
+    check_cancel
     zenity --progress --pulsate --title="Установка обновления" --text="Подождите, идет установка..." --auto-close &
     (
     echo $passwd | sudo -S bash -c "echo -e 'deb http://dl.astralinux.ru/astra/stable/1.7_x86-64/repository-main/ 1.7_x86-64 main contrib non-free' > /etc/apt/sources.list"
@@ -652,30 +716,94 @@ system_update(){
         else
             zenity --error --title="Ошибка" --text="Ошибка при установке обновления."
         fi
-    ) | zenity --progress --pulsate
+    ) | zenity --progress --pulsate --auto-close
 }
 
+#-------------------------------------repo function------------------------------------#
+repo_stable(){
+    passwd=$(zenity --forms --title="Пароль для администратора" \
+        --text="Введите пароль администратора" \
+        --add-password="Пароль")
+    check_cancel    
+    echo $passwd | sudo -S bash -c "echo -e 'deb [arch=amd64] https://dl.astralinux.ru/astra/stable/1.7_x86-64/repository-base/ 1.7_x86-64 main contrib non-free' > /etc/apt/sources.list"
+    echo $passwd | sudo -S bash -c "echo -e 'deb [arch=amd64] https://dl.astralinux.ru/astra/stable/1.7_x86-64/repository-main/ 1.7_x86-64 main contrib non-free' >> /etc/apt/sources.list"
+    echo $passwd | sudo -S bash -c "echo -e 'deb [arch=amd64] https://dl.astralinux.ru/astra/stable/1.7_x86-64/repository-update/ 1.7_x86-64 main contrib non-free' >> /etc/apt/sources.list"
+    echo $passwd | sudo -S bash -c "echo -e 'deb [arch=amd64] https://dl.astralinux.ru/astra/stable/1.7_x86-64/repository-extended/ 1.7_x86-64 main contrib non-free' >> /etc/apt/sources.list"
+    echo $passwd | sudo -S bash -c "echo -e 'deb [arch=amd64] https://dl.astralinux.ru/astra/stable/1.7_x86-64/uu/last/repository-base 1.7_x86-64 main contrib non-free' >> /etc/apt/sources.list"
+    $(zenity --info --text="Репозиторий успешно добавлен. Можно проверить по пути /etc/apt/sources.list" --height=200 --width=300)
+}
+repo_frozen(){
+    passwd=$(zenity --forms --title="Пароль для администратора" \
+        --text="Введите пароль администратора" \
+        --add-password="Пароль")    
+    check_cancel
+    echo $passwd | sudo -S bash -c "echo -e 'deb [arch=amd64] https://dl.astralinux.ru/astra/frozen/1.7_x86-64/1.7.4/repository-base/ 1.7_x86-64 main contrib non-free' > /etc/apt/sources.list"
+    echo $passwd | sudo -S bash -c "echo -e 'deb [arch=amd64] https://dl.astralinux.ru/astra/frozen/1.7_x86-64/1.7.4/repository-main/ 1.7_x86-64 main contrib non-free ' >> /etc/apt/sources.list"
+    echo $passwd | sudo -S bash -c "echo -e 'deb [arch=amd64] https://dl.astralinux.ru/astra/frozen/1.7_x86-64/1.7.4/repository-update/ 1.7_x86-64 main contrib non-free ' >> /etc/apt/sources.list"
+    echo $passwd | sudo -S bash -c "echo -e 'deb [arch=amd64] https://dl.astralinux.ru/astra/frozen/1.7_x86-64/1.7.4/repository-extended/ 1.7_x86-64 main contrib non-free' >> /etc/apt/sources.list"
+    $(zenity --info --text="Репозиторий успешно добавлен. Можно проверить по пути /etc/apt/sources.list" --height=200 --width=300)
+}
+repo_debian(){
+    passwd=$(zenity --forms --title="Пароль для администратора" \
+        --text="Введите пароль администратора" \
+        --add-password="Пароль")    
+    check_cancel
+    echo $passwd | sudo -S bash -c "echo -e 'deb [arch=amd64] http://mirror.yandex.ru/debian/ buster main contrib non-free' > /etc/apt/sources.list"
+    echo $passwd | sudo -S bash -c "echo -e 'deb [arch=amd64] http://mirror.yandex.ru/debian/ buster-updates main contrib non-free ' >> /etc/apt/sources.list"
+    echo $passwd | sudo -S bash -c "echo -e 'deb [arch=amd64] http://mirror.yandex.ru/debian-security/ buster/updates main contrib non-free ' >> /etc/apt/sources.list"
+    $(zenity --info --text="Репозиторий успешно добавлен. Можно проверить по пути /etc/apt/sources.list" --height=200 --width=300)
+}
+repo_stable_debian(){
+    passwd=$(zenity --forms --title="Пароль для администратора" \
+        --text="Введите пароль администратора" \
+        --add-password="Пароль")    
+    check_cancel
+    echo $passwd | sudo -S bash -c "echo -e 'deb [arch=amd64] https://dl.astralinux.ru/astra/stable/1.7_x86-64/repository-base/ 1.7_x86-64 main contrib non-free' > /etc/apt/sources.list"
+    echo $passwd | sudo -S bash -c "echo -e 'deb [arch=amd64] https://dl.astralinux.ru/astra/stable/1.7_x86-64/repository-main/ 1.7_x86-64 main contrib non-free' >> /etc/apt/sources.list"
+    echo $passwd | sudo -S bash -c "echo -e 'deb [arch=amd64] https://dl.astralinux.ru/astra/stable/1.7_x86-64/repository-update/ 1.7_x86-64 main contrib non-free' >> /etc/apt/sources.list"
+    echo $passwd | sudo -S bash -c "echo -e 'deb [arch=amd64] https://dl.astralinux.ru/astra/stable/1.7_x86-64/repository-extended/ 1.7_x86-64 main contrib non-free' >> /etc/apt/sources.list"
+    echo $passwd | sudo -S bash -c "echo -e 'deb [arch=amd64] https://dl.astralinux.ru/astra/stable/1.7_x86-64/uu/last/repository-base 1.7_x86-64 main contrib non-free' >> /etc/apt/sources.list"   
+    echo $passwd | sudo -S bash -c "echo -e 'deb [arch=amd64] http://mirror.yandex.ru/debian/ buster main contrib non-free' >> /etc/apt/sources.list"
+    echo $passwd | sudo -S bash -c "echo -e 'deb [arch=amd64] http://mirror.yandex.ru/debian/ buster-updates main contrib non-free ' >> /etc/apt/sources.list"
+    echo $passwd | sudo -S bash -c "echo -e 'deb [arch=amd64] http://mirror.yandex.ru/debian-security/ buster/updates main contrib non-free ' >> /etc/apt/sources.list"
+    $(zenity --info --text="Репозиторий успешно добавлен. Можно проверить по пути /etc/apt/sources.list" --height=200 --width=300)
+}
+repo_info(){
+    $(zenity --info --text=" Описание веток репозиториев
+ \n✔️ Основной репозиторий (main) - сертифициронный установочный диск
+ \n✔️ Оперативные обновления (update) - обновления для main репозитория 
+ \n✔️ Базовый репозиторий (base) - включает в себя репозиторий main , update и компаненты разработчика (dev) с обновлениями (dev-update)
+ \n✔️ Расширенный репозиторий (extended) - Дополнительное ПО" --height=500 --width=500)
+}
+
+
+#-------------------------------------pomogator settings function------------------------------------#
 pomogator_update(){
     passwd=$(zenity --password)
+    check_cancel
     if dpkg -s git  &>/dev/null; then
         zenity --progress --pulsate --title="Обновление программы" --text="Подождите, идет установка..." --auto-close &
         (
         tmp_folder=$(mktemp -d)
-        echo $passwd | sudo -S git clone "https://gitflic.ru/project/gabidullin-aleks/pomogator.git" "$tmp_folder"
+        echo $passwd | sudo -S git clone --depth=1 "https://gitflic.ru/project/gabidullin-aleks/pomogator.git" "$tmp_folder"
+        exit_code=$?
+        # Проверка кода завершения и отображение соответствующего сообщения
+        if [ $exit_code -eq 0 ]; then
+            $(zenity --info --title="Успех" --text="Программа успешно обновлена! Для запуска обновленной версии откройте приложение повторно!" --height=150 --width=300)
+        else
+            zenity --error --title="Ошибка" --text="Ошибка при установке обнавления."
+        fi
         FOLDER_PATH=/opt/helper/
         # Замените файлы в целевой папке
         echo $passwd | sudo -S cp -R "$tmp_folder"/* "$FOLDER_PATH"
 
         # Удалите временную папку с репозиторием
         echo $passwd | sudo -S rm -rf "$tmp_folder"
-        exit_code=$?
-        # Проверка кода завершения и отображение соответствующего сообщения
-        if [ $exit_code -eq 0 ]; then
-            zenity --info --title="Успех" --text="Программа успешно обнавлена!"
-        else
-            zenity --error --title="Ошибка" --text="Ошибка при установке обнавления."
-        fi
-        ) | zenity --progress --pulsate
+        ) | zenity --progress --pulsate --auto-close
+            $(zenity --question --text "Хотите закрыть приложение для приминения обновления?" --ok-label="Перезапустить" --cancel-label="Отмена" --height=250 --width=200)
+            if [[ $? -eq 0 ]]; then
+                exit 0
+            fi
     else
         $(zenity --info --text=" У вас не установлена утилита git" --height=150 --width=300)
         $(zenity --question --text "Хотите установить программу git?" --ok-label="Установить" --cancel-label="Отмена" --height=150 --width=300)
@@ -698,7 +826,7 @@ pomogator_update(){
 
 pomogator_news(){
     news=$(curl "https://gitflic.ru/project/gabidullin-aleks/pomogator/blob/raw?file=news&inline=false")
-    $(zenity --info --text="Вышло обновление приложения $news " --height=150 --width=300)
+    $(zenity --info --text="Вышло обновление приложения $news " --height=400 --width=700)
 
 }
 
@@ -715,15 +843,12 @@ pomogator_version(){
         fi
     fi
 }
+
+
 #-------------------------------------main function------------------------------------#
 check_update(){
     if dpkg -s git  &>/dev/null; then
         if dpkg -s curl  &>/dev/null; then
-            passwd=$(zenity --forms --title="Пароль для администратора" \
-                    --text="Введите пароль администратора" \
-                    --add-password="Пароль")
-            echo "$passwd" | sudo -Sv >/dev/null 2>&1
-            if [ $? -eq 0 ]; then
             version=$(curl "https://gitflic.ru/project/gabidullin-aleks/pomogator/blob/raw?file=version.sh&inline=false")
             trimmed_version=$(echo "$version" | grep -o '[0-9]\+\.[0-9]\+\.[0-9]\+')
                 if [[ $version == *html* ]]; then
@@ -735,10 +860,6 @@ check_update(){
                         $(zenity --info --text="У вас установленно актуальное обновление "$version_now".\nСпасибо что используете наши технологии" --height=150 --width=300)
                     fi
                 fi
-        else
-        $(zenity --info --text "Неверный пароль администратора! Или у вас не хватает прав!" --height=150 --width=300)
-        exit 0
-        fi
     else
     $(zenity --info --text=" У вас не установлена утилита curl" --height=150 --width=300)
         $(zenity --question --text "Хотите установить программу curl?" --ok-label="Установить" --cancel-label="Отмена" --height=150 --width=300)
@@ -758,7 +879,7 @@ check_update(){
                 else
                     zenity --error --title="Ошибка" --text="Ошибка при установке обнавления."
                 fi
-            ) | zenity --progress --pulsate
+            ) | zenity --progress --pulsate --auto-close
             else
             $(zenity --info --text "Неверный пароль администратора! Или у вас не хватает прав!" --height=150 --width=300)
             fi
@@ -785,7 +906,7 @@ check_update(){
             else
                 zenity --error --title="Ошибка" --text="Ошибка при установке обнавления."
             fi
-            ) | zenity --progress --pulsate
+            ) | zenity --progress --pulsate --auto-close
             else
             $(zenity --info --text "Неверный пароль администратора! Или у вас не хватает прав!" --height=150 --width=300)
             fi
@@ -803,7 +924,7 @@ run_event() {
 
 rend_menu() {
     local choices=("$@")  
-    selected_item_menu=$(zenity --list --title="Меню выбора" --column="Выберите" "${choices[@]}"  --height=400 --width=400)
+    selected_item_menu=$(zenity --list --title="Меню выбора" --column="Выберите" "${choices[@]}"  --height=600 --width=600)
 }
 
 run_menu(){
@@ -827,6 +948,7 @@ run_menu(){
 run_app() {
     $(zenity --info --text="$app_info" --height=300 --width=400)
     check_update
+    pomogator_news
     run_menu "${items_main_menu[@]}"
 }
 
