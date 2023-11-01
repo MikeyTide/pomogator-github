@@ -779,6 +779,9 @@ repo_info(){
 pomogator_update(){
     check_cancel
     if dpkg -s git  &>/dev/null; then
+    passwd=$(zenity --forms --title="Пароль для администратора" \
+            --text="Введите пароль администратора" \
+            --add-password="Пароль")
         zenity --progress --pulsate --title="Обновление программы" --text="Подождите, идет установка..." --auto-close &
         (
         tmp_folder=$(mktemp -d)
@@ -835,10 +838,15 @@ pomogator_version(){
     else
         if [[ "$trimmed_version" != "$version_now" ]]; then
             $(zenity --info --text="Вышло обновление "$trimmed_version".\nСпасибо что используете наши технологии" --height=150 --width=300)
-        else
-            $(zenity --info --text="У вас установленно актуальное обновление "$version_now".\nСпасибо что используете наши технологии" --height=150 --width=300)
+            $(zenity --question --text="Хотите посмотреть новвоведения?" --ok-label="Да" --cancel-label="Нет" --height=150 --width=300)
+                if [[ $? -eq 0 ]]; then
+                newss=$(curl "https://gitflic.ru/project/gabidullin-aleks/pomogator/blob/raw?file=news&inline=false")
+                $(zenity --info --text="$newss" --height=400 --width=700)
+                fi
+            else
+                $(zenity --info --text="У вас установленно актуальное обновление "$version_now".\nСпасибо что используете наши технологии" --height=150 --width=300)
+            fi
         fi
-    fi
 }
 
 
@@ -853,16 +861,17 @@ check_update(){
                 else
                     if [[ "$trimmed_version" != "$version_now" ]]; then
                         $(zenity --info --text="Вышло обновление приложения "$trimmed_version".\nСпасибо что используете наши технологии" --height=150 --width=300)
-                        $(zenity --question --text "Хотите посмотреть новвоведения?" --ok-label="Да" --cancel-label="Нет" --height=150 --width=300)
+                        $(zenity --question --text="Хотите посмотреть новвоведения?" --ok-label="Да" --cancel-label="Нет" --height=150 --width=300)
                         if [[ $? -eq 0 ]]; then
                         newss=$(curl "https://gitflic.ru/project/gabidullin-aleks/pomogator/blob/raw?file=news&inline=false")
                         $(zenity --info --text="$newss" --height=400 --width=700)
-                    else
-                        $(zenity --info --text="У вас установленно актуальное обновление "$version_now".\nСпасибо что используете наши технологии" --height=150 --width=300)
+                        fi
+                        else
+                            $(zenity --info --text="У вас установленно актуальное обновление "$version_now".\nСпасибо что используете наши технологии" --height=150 --width=300)
+                        fi
                     fi
-                fi
     else
-    $(zenity --info --text=" У вас не установлена утилита curl" --height=150 --width=300)
+        $(zenity --info --text=" У вас не установлена утилита curl" --height=150 --width=300)
         $(zenity --question --text "Хотите установить программу curl?" --ok-label="Установить" --cancel-label="Отмена" --height=150 --width=300)
         if [[ $? -eq 0 ]]; then
         passwd=$(zenity --forms --title="Пароль для администратора" \
