@@ -777,7 +777,6 @@ repo_info(){
 
 #-------------------------------------pomogator settings function------------------------------------#
 pomogator_update(){
-    passwd=$(zenity --password)
     check_cancel
     if dpkg -s git  &>/dev/null; then
         zenity --progress --pulsate --title="Обновление программы" --text="Подождите, идет установка..." --auto-close &
@@ -854,6 +853,10 @@ check_update(){
                 else
                     if [[ "$trimmed_version" != "$version_now" ]]; then
                         $(zenity --info --text="Вышло обновление приложения "$trimmed_version".\nСпасибо что используете наши технологии" --height=150 --width=300)
+                        $(zenity --question --text "Хотите посмотреть новвоведения?" --ok-label="Да" --cancel-label="Нет" --height=150 --width=300)
+                        if [[ $? -eq 0 ]]; then
+                        newss=$(curl "https://gitflic.ru/project/gabidullin-aleks/pomogator/blob/raw?file=news&inline=false")
+                        $(zenity --info --text="$newss" --height=400 --width=700)
                     else
                         $(zenity --info --text="У вас установленно актуальное обновление "$version_now".\nСпасибо что используете наши технологии" --height=150 --width=300)
                     fi
@@ -946,7 +949,6 @@ run_menu(){
 run_app() {
     $(zenity --info --text="$app_info" --height=300 --width=400)
     check_update
-    pomogator_news
     run_menu "${items_main_menu[@]}"
 }
 
