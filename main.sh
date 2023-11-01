@@ -533,53 +533,51 @@ finereader(){
 1c_install(){
     passwd=$(zenity --password)
     check_cancel
-    # $(zenity --info --text="Выберите архив с серверной частью Предприятия 1с (примерное имя deb64_8_3_18_1959.tar.gz) " --height=150 --width=300)
-    # selected_file=$(zenity --file-selection)
     mkdir /home/$USER/Desktop/1c
-    # zenity --progress --pulsate --title="Установка пакета" --text="Подождите, идет установка..." --auto-close &
-    # (
-    # echo $passwd | sudo -S tar -xzf $selected_file -C /home/$USER/Desktop/1c
-    # # Установка пакета с использованием sudo и передачей пароля через stdin
-    # echo $passwd | sudo -S dpkg -i /home/$USER/Desktop/1c/1c-enterprise-*-common*_amd64.deb
-    # echo $passwd | sudo -S dpkg -i /home/$USER/Desktop/1c/1c-enterprise-*-server*_amd64.deb    
-    # echo $passwd | sudo -S dpkg -i /home/$USER/Desktop/1c/1c-enterprise-*-ws*_amd64.deb  
-    # echo $passwd | sudo -S dpkg -i /home/$USER/Desktop/1c/1c-enterprise-*-crs_*_amd64.deb
-    # exit_code=$?
-    # # Проверка кода завершения и отображение соответствующего сообщения
-    #     if [ $exit_code -eq 0 ]; then
-    #         zenity --info --title="Успех" --text="Серверная составляющая установлена!"
-    #     else
-    #         zenity --error --title="Ошибка" --text="Ошибка при установке серверной части."
-    #     fi
-    # ) | zenity --progress --pulsate --auto-close
-    # # Получение кода завершения установки
     $(zenity --info --text="Выберите архив с клиентской частью Предприятия 1с (примерное имя client_8_3_18_1959.deb64.tar.gz) " --height=150 --width=300)
     selected_file_client=$(zenity --file-selection)
-    zenity --progress --pulsate --title="Установка пакета" --text="Подождите, идет установка..." --auto-close &
-    (
     echo $passwd | sudo -S tar -xzf $selected_file_client -C /home/$USER/Desktop/1c
-    echo $passwd | sudo -S apt install libfreetype6 libgsf-1-common unixodbc glib2.0 -y 
-    echo $passwd | sudo -S apt install libwebkitgtk-3.0-0
-    echo $passwd | sudo -S apt --fix-broken install -y
-    echo $passwd | sudo -S dpkg -i /home/$USER/Desktop/1c/1c-enterprise-*-common*_amd64.deb
-    echo $passwd | sudo -S dpkg -i /home/$USER/Desktop/1c/1c-enterprise-*-server*_amd64.deb    
-    echo $passwd | sudo -S dpkg -i /home/$USER/Desktop/1c/1c-enterprise-*-ws*_amd64.deb  
-    echo $passwd | sudo -S dpkg -i /home/$USER/Desktop/1c/1c-enterprise-*-crs_*_amd64.deb
-    echo $passwd | sudo -S dpkg -i /home/$USER/Desktop/1c/1c-enterprise-*-client_*_amd64.deb   
-    echo $passwd | sudo -S rm -r /home/$USER/Desktop/1c
-    # тут мы может указать путь откуда будут скачиваться заранее созданый файл с базами 1с ( он есть в репозитори как пример)
-    # echo $passwd | sudo -S wget http://ip-address/share/base1c.sh -P /opt/
-    # echo $passwd | sudo -S chmod +x /opt/base1c.sh
-    # тут мы добавляем скрипт base1c.sh в автозапуск при входе любого пользователя, и если список базу него пуст, то они пропишуться
-    # echo $passwd | sudo -S wget http://ip-address/share/base.desktop -P /etc/xdg/autostart/
-    exit_code=$?
-    # Проверка кода завершения и отображение соответствующего сообщения
+    check_1c=$(ls /home/$USER/1c/ | grep *.run)
+    if $check_1c &> /dev/null; then
+        # Если есть файлы с расширением .run, выполняем команду
+        zenity --progress --pulsate --title="Установка пакета" --text="Подождите, идет установка..." --auto-close &
+        (
+        echo $passwd | sudo -S /home/$USER/1c/*.run --mode unattended
+        exit_code=$?
+        echo $passwd | sudo -S rm -r /home/$USER/Desktop/1c
+        # Проверка кода завершения и отображение соответствующего сообщения
         if [ $exit_code -eq 0 ]; then
             zenity --info --title="Успех" --text="Клиентская составляющая установлена!"
         else
-            zenity --error --title="Ошибка" --text="Ошибка при установке серверной части."
+            zenity --error --title="Ошибка" --text="Ошибка при установке клиентской части."
         fi
-    ) | zenity --progress --pulsate --auto-close
+        ) | zenity --progress --pulsate --auto-close
+    else   
+        zenity --progress --pulsate --title="Установка пакета" --text="Подождите, идет установка..." --auto-close &
+        (
+        echo $passwd | sudo -S apt install libfreetype6 libgsf-1-common unixodbc glib2.0 -y 
+        echo $passwd | sudo -S apt install libwebkitgtk-3.0-0
+        echo $passwd | sudo -S apt --fix-broken install -y
+        echo $passwd | sudo -S dpkg -i /home/$USER/Desktop/1c/1c-enterprise-*-common*_amd64.deb
+        echo $passwd | sudo -S dpkg -i /home/$USER/Desktop/1c/1c-enterprise-*-server*_amd64.deb    
+        echo $passwd | sudo -S dpkg -i /home/$USER/Desktop/1c/1c-enterprise-*-ws*_amd64.deb  
+        echo $passwd | sudo -S dpkg -i /home/$USER/Desktop/1c/1c-enterprise-*-crs_*_amd64.deb
+        echo $passwd | sudo -S dpkg -i /home/$USER/Desktop/1c/1c-enterprise-*-client_*_amd64.deb   
+        echo $passwd | sudo -S rm -r /home/$USER/Desktop/1c
+        # тут мы может указать путь откуда будут скачиваться заранее созданый файл с базами 1с ( он есть в репозитори как пример)
+        # echo $passwd | sudo -S wget http://ip-address/share/base1c.sh -P /opt/
+        # echo $passwd | sudo -S chmod +x /opt/base1c.sh
+        # тут мы добавляем скрипт base1c.sh в автозапуск при входе любого пользователя, и если список базу него пуст, то они пропишуться
+        # echo $passwd | sudo -S wget http://ip-address/share/base.desktop -P /etc/xdg/autostart/
+        exit_code=$?
+        # Проверка кода завершения и отображение соответствующего сообщения
+            if [ $exit_code -eq 0 ]; then
+                zenity --info --title="Успех" --text="Клиентская составляющая установлена!"
+            else
+                zenity --error --title="Ошибка" --text="Ошибка при установке клиентской части."
+            fi
+        ) | zenity --progress --pulsate --auto-close
+    fi
 }
 
 dinfo_19(){
